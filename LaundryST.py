@@ -4,7 +4,7 @@ import os
 from dotenv import load_dotenv
 
 # Carrega as variáveis de ambiente, incluindo a chave de API
-#load_dotenv()
+# load_dotenv()
 
 # Configura a chave de API do OpenAI
 api_key = os.getenv("OPENAI_API_KEY")
@@ -40,11 +40,11 @@ def ask_openai(question):
 
 # Configura o layout do Streamlit
 st.title("Assistente Virtual da Lavandaria")
-st.write("Olá, sou o assistente virtual da lavandaria do Campo Alegre! Em que posso ser útil?")
 
-# Inicializa o log de conversa como uma lista vazia
+# Inicializa o log de conversa como uma lista vazia e adiciona a mensagem inicial do bot
 if 'chat_log' not in st.session_state:
     st.session_state.chat_log = []
+    st.session_state.chat_log.append("Assistente: Olá, sou o assistente virtual da lavandaria do Campo Alegre! Em que posso ser útil?")
 
 # Caixa de entrada para a pergunta do usuário
 question = st.text_input("Sua Mensagem:", placeholder="Digite sua mensagem aqui...")
