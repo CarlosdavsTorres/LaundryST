@@ -59,6 +59,18 @@ def ask_openai(question):
 # Configura o layout do Streamlit
 st.title("Assistente Virtual da Lavandaria")
 
+# Botão de download do Excel
+if st.button("Descarregar Excel"):
+    try:
+        with open(EXCEL_FILE, "rb") as f:
+            st.download_button(
+                label="Descarregar Histórico (Excel)",
+                data=f,
+                file_name="conversas_lavandaria.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            )
+    except FileNotFoundError:
+        st.error("O ficheiro ainda não foi criado.")
 
 # Botão de teste para criar o ficheiro Excel
 if st.button("Criar Ficheiro Excel (Teste)"):
