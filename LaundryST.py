@@ -1,7 +1,25 @@
 import openai
 import streamlit as st
 import os
-from dotenv import load_dotenv
+import pandas as pd
+from openpyxl import load_workbook
+
+# Nome do ficheiro Excel para armazenar as conversas
+EXCEL_FILE = "conversas_lavandaria.xlsx"
+
+# Função para guardar conversas no Excel
+def save_to_excel(user_message, bot_response, file):
+    try:
+        # Tenta carregar o ficheiro Excel existente
+        workbook = load_workbook(file)
+        sheet = workbook.active
+        # Adiciona uma nova linha com a mensagem do usuário e a resposta do bot
+        sheet.append([user_message, bot_response])
+        workbook.save(file)
+    except FileNotFoundError:
+        # Cria um novo ficheiro se não existir
+        df = pd.DataFrame([[user_message, bot_response]], columns=["Usuário", "Assistente"])
+        df.to_excel(file, index=False, engine="openpyxl")
 
 # Carrega as variáveis de ambiente, incluindo a chave de API
 # load_dotenv()
@@ -58,6 +76,9 @@ if st.button("Enviar"):
         # Obtém a resposta do bot e adiciona ao log
         answer = ask_openai(question)
         st.session_state.chat_log.append(f"Assistente: {answer}")
+        
+        # Salva a conversa no Excel
+        save_to_excel(question, answer, EXCEL_FILE)
 
 # Exibe o log de conversa
 for message in st.session_state.chat_log:
