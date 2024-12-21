@@ -6,7 +6,7 @@ from google.oauth2.service_account import Credentials
 
 # Configurar a autenticação do Google Sheets
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
-credentials = Credentials.from_service_account_file("credentials.json", scopes=SCOPES)
+credentials = Credentials.from_service_account_file("lavandariast-bot-5701b27fb869.json", scopes=SCOPES)
 gc = gspread.authorize(credentials)
 
 # ID da tua folha de cálculo do Google Sheets
