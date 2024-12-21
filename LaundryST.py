@@ -1,25 +1,21 @@
 import openai
 import streamlit as st
 import os
-import pandas as pd
-from openpyxl import load_workbook
+import gspread
+from google.oauth2.service_account import Credentials
 
-# Nome do ficheiro Excel para armazenar as conversas
-EXCEL_FILE = "conversas_lavandaria.xlsx"
+# Configurar a autenticação do Google Sheets
+SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
+credentials = Credentials.from_service_account_file("credentials.json", scopes=SCOPES)
+gc = gspread.authorize(credentials)
 
-# Função para guardar conversas no Excel
-def save_to_excel(user_message, bot_response, file):
-    try:
-        # Tenta carregar o ficheiro Excel existente
-        workbook = load_workbook(file)
-        sheet = workbook.active
-        # Adiciona uma nova linha com a mensagem do usuário e a resposta do bot
-        sheet.append([user_message, bot_response])
-        workbook.save(file)
-    except FileNotFoundError:
-        # Cria um novo ficheiro se não existir
-        df = pd.DataFrame([[user_message, bot_response]], columns=["Usuário", "Assistente"])
-        df.to_excel(file, index=False, engine="openpyxl")
+# ID da tua folha de cálculo do Google Sheets
+SHEET_ID = "16cHqwWP3Yy1D4kln5_12vXferPvXwlEJvC79te_4OXw"  # Substituir pelo ID correto
+sheet = gc.open_by_key(SHEET_ID).sheet1  # Abre a primeira folha
+
+# Função para guardar perguntas e respostas no Google Sheets
+def save_to_google_sheets(user_message, bot_response):
+    sheet.append_row([user_message, bot_response])
 
 # Carrega as variáveis de ambiente, incluindo a chave de API
 # load_dotenv()
@@ -59,25 +55,6 @@ def ask_openai(question):
 # Configura o layout do Streamlit
 st.title("Assistente Virtual da Lavandaria")
 
-# Botão de download do Excel
-if st.button("Descarregar Excel"):
-    try:
-        with open(EXCEL_FILE, "rb") as f:
-            st.download_button(
-                label="Descarregar Histórico (Excel)",
-                data=f,
-                file_name="conversas_lavandaria.xlsx",
-                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            )
-    except FileNotFoundError:
-        st.error("O ficheiro ainda não foi criado.")
-
-# Botão de teste para criar o ficheiro Excel
-if st.button("Criar Ficheiro Excel (Teste)"):
-    save_to_excel("Teste Usuário", "Teste Assistente", EXCEL_FILE)
-    st.success("Ficheiro Excel criado com sucesso!")
-
-
 # Inicializa o log de conversa como uma lista vazia e adiciona a mensagem inicial do bot
 if 'chat_log' not in st.session_state:
     st.session_state.chat_log = []
@@ -96,8 +73,8 @@ if st.button("Enviar"):
         answer = ask_openai(question)
         st.session_state.chat_log.append(f"Assistente: {answer}")
         
-        # Salva a conversa no Excel
-        save_to_excel(question, answer, EXCEL_FILE)
+        # Salva a conversa no Google Sheets
+        save_to_google_sheets(question, answer)
 
 # Exibe o log de conversa
 for message in st.session_state.chat_log:
