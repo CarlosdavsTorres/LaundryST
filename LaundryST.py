@@ -59,6 +59,13 @@ def ask_openai(question):
 # Configura o layout do Streamlit
 st.title("Assistente Virtual da Lavandaria")
 
+
+# Botão de teste para criar o ficheiro Excel
+if st.button("Criar Ficheiro Excel (Teste)"):
+    save_to_excel("Teste Usuário", "Teste Assistente", EXCEL_FILE)
+    st.success("Ficheiro Excel criado com sucesso!")
+
+
 # Inicializa o log de conversa como uma lista vazia e adiciona a mensagem inicial do bot
 if 'chat_log' not in st.session_state:
     st.session_state.chat_log = []
