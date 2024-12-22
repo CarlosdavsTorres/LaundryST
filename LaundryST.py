@@ -19,14 +19,18 @@ gc = gspread.authorize(credentials)
 
 # ID da tua folha de cálculo do Google Sheets
 SHEET_ID = "16cHqwWP3Yy1D4kln5_12vXferPvXwlEJvC79te_4OXw"  # Substituir pelo ID correto
-sheet = gc.open_by_key(SHEET_ID).sheet1  # Abre a primeira folha
+spreadsheet = gc.open_by_key(SHEET_ID)
+sheet = spreadsheet.worksheet("Folha1")  # Acessa a folha chamada "Folha1"
 
 # Função para guardar perguntas, respostas e data/hora da pergunta
 def save_to_google_sheets(user_message, bot_response):
-    # Formata a data e hora no formato 'dd/mm/aaaa HH:MM:SS'
-    time_string = datetime.now().strftime('%d/%m/%Y %H:%M:%S')
-    # Adiciona a linha na planilha com as colunas A (pergunta), B (resposta) e C (data/hora)
-    sheet.append_row([user_message, bot_response, time_string])
+    try:
+        # Formata a data e hora no formato 'dd/mm/aaaa HH:MM:SS'
+        time_string = datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+        # Adiciona a linha na planilha com as colunas A (pergunta), B (resposta) e C (data/hora)
+        sheet.append_row([user_message, bot_response, time_string])
+    except Exception as e:
+        st.error(f"Erro ao salvar no Google Sheets: {e}")
 
 # Configura a chave de API do OpenAI
 api_key = os.getenv("OPENAI_API_KEY")
