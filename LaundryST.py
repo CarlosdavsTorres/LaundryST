@@ -1,12 +1,25 @@
 import openai
 import streamlit as st
 import os
+import json
 import gspread
 from google.oauth2.service_account import Credentials
 
-# Configurar a autenticação do Google Sheets
+# Configurar a autenticação do Google Sheets usando variáveis de ambiente
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
-credentials = Credentials.from_service_account_file("lavandariast-bot-5701b27fb869.json", scopes=SCOPES)
+
+# Obter o JSON das credenciais do Google Sheets das variáveis de ambiente
+credentials_json = os.getenv("GOOGLE_APPLICATION_CREDENTIALS_JSON")
+if not credentials_json:
+    raise ValueError("As credenciais do Google Sheets não foram encontradas nas variáveis de ambiente.")
+
+# Converter o JSON para um dicionário
+credentials_dict = json.loads(credentials_json)
+
+# Criar as credenciais
+credentials = Credentials.from_service_account_info(credentials_dict, scopes=SCOPES)
+
+# Autorizar o acesso ao Google Sheets
 gc = gspread.authorize(credentials)
 
 # ID da tua folha de cálculo do Google Sheets
@@ -17,11 +30,10 @@ sheet = gc.open_by_key(SHEET_ID).sheet1  # Abre a primeira folha
 def save_to_google_sheets(user_message, bot_response):
     sheet.append_row([user_message, bot_response])
 
-# Carrega as variáveis de ambiente, incluindo a chave de API
-# load_dotenv()
-
 # Configura a chave de API do OpenAI
 api_key = os.getenv("OPENAI_API_KEY")
+if not api_key:
+    raise ValueError("A chave da API OpenAI não foi encontrada nas variáveis de ambiente.")
 openai.api_key = api_key
 
 # Define a função que interage com a API OpenAI usando o modelo gpt-3.5-turbo
@@ -42,7 +54,7 @@ def ask_openai(question):
                     The only other advantage of the membership card is seeing if machines are available in app. \
                     Specifically detail every advantage and price reduction of having the membership card if the client asks (there are no special discounts or points to accumulate to exchange for discounts). \
                     Respond in whichever language the client writes to you (for example, if the client says Ciao, reply in Italian, if they say Hi, reply in English, or if they say Hola, reply in Spanish). \
-                    Begin everytime by saying: Olá, sou o assistente virtual da lavandaria do Campo Alegre! Em que posso ser útil?""" },
+                    Begin everytime by saying: Olá, sou o assistente virtual da lavandaria do Campo Alegre! Em que posso ser útil?"""},
                 {"role": "user", "content": question}
             ],
             max_tokens=150,
@@ -68,14 +80,15 @@ if st.button("Enviar"):
     if question:
         # Adiciona a pergunta do usuário ao log
         st.session_state.chat_log.append(f"Você: {question}")
-        
+
         # Obtém a resposta do bot e adiciona ao log
         answer = ask_openai(question)
         st.session_state.chat_log.append(f"Assistente: {answer}")
-        
+
         # Salva a conversa no Google Sheets
         save_to_google_sheets(question, answer)
 
 # Exibe o log de conversa
 for message in st.session_state.chat_log:
     st.write(message)
+
