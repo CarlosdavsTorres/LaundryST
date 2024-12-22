@@ -6,11 +6,11 @@ import gspread
 from google.oauth2.service_account import Credentials
 from datetime import datetime
 
+# Debug: imprime variáveis de ambiente
 print("Credenciais JSON:", os.getenv("GOOGLE_APPLICATION_CREDENTIALS_JSON"))
 
 # Configurar a autenticação do Google Sheets usando variáveis de ambiente
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
-
 credentials_json = os.getenv("GOOGLE_APPLICATION_CREDENTIALS_JSON")
 if not credentials_json:
     raise ValueError("As credenciais do Google Sheets não foram encontradas nas variáveis de ambiente.")
@@ -19,11 +19,14 @@ credentials_dict = json.loads(credentials_json)
 credentials = Credentials.from_service_account_info(credentials_dict, scopes=SCOPES)
 gc = gspread.authorize(credentials)
 
+# ID da tua Google Sheet
 SHEET_ID = "16cHqwWP3Yy1D4kln5_12vXferPvXwlEJvC79te_4OXw"
 sheet = gc.open_by_key(SHEET_ID).sheet1
 
 def save_to_google_sheets(user_message, bot_response):
-    # Registra user_message na coluna A, bot_response na coluna B e a data/hora na coluna C
+    """
+    Salva a pergunta, a resposta e o timestamp na planilha (colunas A, B e C).
+    """
     sheet.append_row([
         user_message,
         bot_response,
@@ -36,7 +39,7 @@ if not api_key:
     raise ValueError("A chave da API OpenAI não foi encontrada nas variáveis de ambiente.")
 openai.api_key = api_key
 
-# Define a função que interage com a API OpenAI usando o modelo gpt-3.5-turbo
+# Função para interagir com a API OpenAI
 def ask_openai(question):
     try:
         response = openai.ChatCompletion.create(
@@ -70,21 +73,40 @@ def ask_openai(question):
 # Configura o layout do Streamlit
 st.title("Assistente Virtual da Lavandaria")
 
+# Inicializa o log de conversa
 if 'chat_log' not in st.session_state:
     st.session_state.chat_log = []
     st.session_state.chat_log.append(
         "Assistente: Olá, sou o assistente virtual da lavandaria do Campo Alegre! Em que posso ser útil?"
     )
 
-question = st.text_input("Sua Mensagem:", placeholder="Digite sua mensagem aqui...", key="user_input")
-
-if st.button("Enviar"):
+def process_message():
+    """
+    Função para processar a mensagem e gerar a resposta.
+    É chamada ao pressionar Enter (on_change) ou ao clicar no botão "Enviar".
+    """
+    question = st.session_state["user_input"]
     if question:
         st.session_state.chat_log.append(f"Você: {question}")
         answer = ask_openai(question)
         st.session_state.chat_log.append(f"Assistente: {answer}")
-        # Salva pergunta, resposta e data/hora
+        # Salva no Google Sheets
         save_to_google_sheets(question, answer)
+        # Limpa o campo de texto
+        st.session_state["user_input"] = ""
 
+# Campo de texto que submete ao pressionar Enter
+st.text_input(
+    "Sua Mensagem:",
+    placeholder="Digite sua mensagem e pressione Enter ou clique em 'Enviar'",
+    key="user_input",
+    on_change=process_message
+)
+
+# Botão "Enviar" que chama a mesma função
+if st.button("Enviar"):
+    process_message()
+
+# Exibe todo o histórico de conversa
 for message in st.session_state.chat_log:
     st.write(message)
