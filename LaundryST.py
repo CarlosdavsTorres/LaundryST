@@ -76,7 +76,7 @@ if 'chat_log' not in st.session_state:
     st.session_state.chat_log.append("Assistente: Olá, sou o assistente virtual da lavandaria do Campo Alegre! Em que posso ser útil?")
 
 # Caixa de entrada para a pergunta do usuário
-question = st.text_input("Sua Mensagem:", placeholder="Digite sua mensagem aqui...")
+question = st.text_input("Sua Mensagem:", placeholder="Digite sua mensagem aqui...", key="user_input")
 
 # Botão para enviar a pergunta
 if st.button("Enviar"):
