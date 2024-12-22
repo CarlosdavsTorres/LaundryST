@@ -5,6 +5,9 @@ import json
 import gspread
 from google.oauth2.service_account import Credentials
 
+print("Credenciais JSON:", os.getenv("GOOGLE_APPLICATION_CREDENTIALS_JSON"))
+
+
 # Configurar a autenticação do Google Sheets usando variáveis de ambiente
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
 
