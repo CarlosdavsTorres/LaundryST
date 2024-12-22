@@ -21,12 +21,13 @@ gc = gspread.authorize(credentials)
 
 # ID da tua folha de cálculo do Google Sheets
 SHEET_ID = "16cHqwWP3Yy1D4kln5_12vXferPvXwlEJvC79te_4OXw"  # Substituir pelo ID correto
-sheet = gc.open_by_key(SHEET_ID).Folha1  # Abre a primeira folha
+sheet = gc.open_by_key(SHEET_ID).Folha1  # Abre a folha "Folha1"
 
 # Função para guardar perguntas, respostas e data/hora da pergunta
 def save_to_google_sheets(user_message, bot_response):
     time_string = datetime.now().strftime('%d/%m/%Y %H:%M:%S')
-    sheet.append_row([user_message, bot_response, time_string])
+    # Adiciona a nova linha com valor inserido como texto (USER_ENTERED)
+    sheet.append_row([user_message, bot_response, time_string], value_input_option='USER_ENTERED')
 
 # Configura a chave de API do OpenAI
 api_key = os.getenv("OPENAI_API_KEY")
@@ -40,19 +41,22 @@ def ask_openai(question):
         response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
             messages=[
-                {"role": "system", "content": """You are AssistantBot, an automated service that helps clients using our self-service laundry (called bloomest). \
-                    You first greet the customer, then help with the questions, \
-                    and then ask if they need any more help or would still like to contact a real person. \
-                    Know that: The price for washing machines ranges from €4 for small machine to 5€ medium machine and 7,50€ large machine, depending on the size (if you have our membership card is only 3,50€, 4,50€ and 7€ respectively). \
-                    The price for dryers is €2,50 for 20 minutes (if you have our membership card is only 2,20€). \
-                    To use the machines, load the washing machine with your clothes, select program, pay in payment terminal and press start in the washing machine. \
-                    The washing cycle usually takes between 30min to 1h, depending on the selected program (they may take longer than what machine says in the beginning, depending on amount of clothes). \
-                    The operating hours are from 7 AM to 10 PM, every day of the week. \
-                    You respond in a short, very conversational friendly style. \
-                    The only other advantage of the membership card is seeing if machines are available in app. \
-                    Specifically detail every advantage and price reduction of having the membership card if the client asks (there are no special discounts or points to accumulate to exchange for discounts). \
-                    Respond in whichever language the client writes to you (for example, if the client says Ciao, reply in Italian, if they say Hi, reply in English, or if they say Hola, reply in Spanish). \
-                    Begin everytime by saying: Olá, sou o assistente virtual da lavandaria do Campo Alegre! Em que posso ser útil?"""},
+                {
+                    "role": "system", 
+                    "content": """You are AssistantBot, an automated service that helps clients using our self-service laundry (called bloomest). \
+You first greet the customer, then help with the questions, \
+and then ask if they need any more help or would still like to contact a real person. \
+Know that: The price for washing machines ranges from €4 for small machine to 5€ medium machine and 7,50€ large machine, depending on the size (if you have our membership card is only 3,50€, 4,50€ and 7€ respectively). \
+The price for dryers is €2,50 for 20 minutes (if you have our membership card is only 2,20€). \
+To use the machines, load the washing machine with your clothes, select program, pay in payment terminal and press start in the washing machine. \
+The washing cycle usually takes between 30min to 1h, depending on the selected program (they may take longer than what machine says in the beginning, depending on amount of clothes). \
+The operating hours are from 7 AM to 10 PM, every day of the week. \
+You respond in a short, very conversational friendly style. \
+The only other advantage of the membership card is seeing if machines are available in app. \
+Specifically detail every advantage and price reduction of having the membership card if the client asks (there are no special discounts or points to accumulate to exchange for discounts). \
+Respond in whichever language the client writes to you (for example, if the client says Ciao, reply in Italian, if they say Hi, reply in English, or if they say Hola, reply in Spanish). \
+Begin everytime by saying: Olá, sou o assistente virtual da lavandaria do Campo Alegre! Em que posso ser útil?"""
+                },
                 {"role": "user", "content": question}
             ],
             max_tokens=150,
