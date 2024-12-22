@@ -1,7 +1,3 @@
-Partilhar
-
-
-Dito por si:
 import openai
 import streamlit as st
 import os
