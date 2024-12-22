@@ -6,36 +6,54 @@ import gspread
 from google.oauth2.service_account import Credentials
 from datetime import datetime
 
-# 1. Ler as credenciais do ambiente
-credentials_json = os.getenv("GOOGLE_APPLICATION_CREDENTIALS_JSON")
-if not credentials_json:
-    raise ValueError("As credenciais do Google Sheets não foram encontradas nas variáveis de ambiente.")
+# ==========================
+# 1. Configurar Google Sheets
+# ==========================
+def get_sheet():
+    # Ler credenciais do ambiente
+    credentials_json = os.getenv("GOOGLE_APPLICATION_CREDENTIALS_JSON")
+    if not credentials_json:
+        raise ValueError("As credenciais do Google Sheets não foram encontradas nas variáveis de ambiente.")
+    
+    credentials_dict = json.loads(credentials_json)
+    scopes = ["https://www.googleapis.com/auth/spreadsheets"]
+    credentials = Credentials.from_service_account_info(credentials_dict, scopes=scopes)
+    gc = gspread.authorize(credentials)
+    
+    # Abrir a folha de cálculo
+    sheet_id = "16cHqwWP3Yy1D4kln5_12vXferPvXwlEJvC79te_4OXw"  # Substituir pelo ID correto
+    sheet = gc.open_by_key(sheet_id).sheet1  # Abre a primeira folha
+    
+    return sheet
 
-# 2. Converter o JSON em dict
-credentials_dict = json.loads(credentials_json)
-
-# 3. Criar credenciais para o Google Sheets
-SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
-credentials = Credentials.from_service_account_info(credentials_dict, scopes=SCOPES)
-gc = gspread.authorize(credentials)
-
-# 4. Aceder à folha de cálculo pelo ID
-SHEET_ID = "16cHqwWP3Yy1D4kln5_12vXferPvXwlEJvC79te_4OXw"  # Substituir com o ID correto
-sheet = gc.open_by_key(SHEET_ID).sheet1  # Abre a primeira folha
-
-# 5. Função para salvar Pergunta, Resposta e Data/Hora
+# ==========================
+# 2. Função para salvar dados
+# ==========================
 def save_to_google_sheets(user_message, bot_response):
+    """Salva (Pergunta, Resposta, Data/Hora) em colunas A, B e C."""
+    sheet = get_sheet()
     time_string = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-    sheet.append_row([user_message, bot_response, time_string], value_input_option='USER_ENTERED')
+    
+    # Determinar última linha preenchida e somar 1
+    last_row = len(sheet.get_all_values()) + 1
+    
+    # Atualizar as colunas A, B, C da nova linha
+    sheet.update(
+        f"A{last_row}:C{last_row}",
+        [[user_message, bot_response, time_string]],
+        value_input_option="USER_ENTERED"
+    )
 
-# 6. Configurar a API Key do OpenAI
+# ==========================
+# 3. Configurar OpenAI
+# ==========================
 api_key = os.getenv("OPENAI_API_KEY")
 if not api_key:
     raise ValueError("A chave da API OpenAI não foi encontrada nas variáveis de ambiente.")
 openai.api_key = api_key
 
-# 7. Função que envia pergunta para o modelo gpt-3.5-turbo
 def ask_openai(question):
+    """Envia a pergunta para o modelo gpt-3.5-turbo."""
     try:
         response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
@@ -68,33 +86,34 @@ Begin everytime by saying: Olá, sou o assistente virtual da lavandaria do Campo
     except Exception as e:
         return f"Error: {e}"
 
-# 8. Layout do Streamlit
+# ==========================
+# 4. Aplicação Streamlit
+# ==========================
 st.title("Assistente Virtual da Lavandaria")
 
-# 9. Inicializa o log de conversa (se não existir)
+# Inicializar o histórico de conversa se não existir
 if 'chat_log' not in st.session_state:
     st.session_state.chat_log = []
-    # Mensagem inicial do bot
     st.session_state.chat_log.append(
         "Assistente: Olá, sou o assistente virtual da lavandaria do Campo Alegre! Em que posso ser útil?"
     )
 
-# 10. Caixa de entrada de texto
+# Caixa de texto para o utilizador
 question = st.text_input("Sua Mensagem:", placeholder="Digite sua mensagem aqui...", key="user_input")
 
-# 11. Botão para enviar pergunta
+# Botão de envio
 if st.button("Enviar"):
     if question:
-        # Adiciona a pergunta do usuário ao log
+        # Guardar pergunta no chat
         st.session_state.chat_log.append(f"Você: {question}")
-
-        # Obtém resposta do modelo
+        
+        # Obter resposta do ChatGPT
         answer = ask_openai(question)
         st.session_state.chat_log.append(f"Assistente: {answer}")
-
+        
         # Salvar no Google Sheets
         save_to_google_sheets(question, answer)
 
-# 12. Exibir o log de conversa
+# Mostrar todo o histórico de conversa
 for message in st.session_state.chat_log:
     st.write(message)
