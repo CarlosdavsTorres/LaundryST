@@ -4,34 +4,29 @@ import os
 import json
 import gspread
 from google.oauth2.service_account import Credentials
+from datetime import datetime
 
 print("Credenciais JSON:", os.getenv("GOOGLE_APPLICATION_CREDENTIALS_JSON"))
-
 
 # Configurar a autenticação do Google Sheets usando variáveis de ambiente
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
 
-# Obter o JSON das credenciais do Google Sheets das variáveis de ambiente
 credentials_json = os.getenv("GOOGLE_APPLICATION_CREDENTIALS_JSON")
 if not credentials_json:
     raise ValueError("As credenciais do Google Sheets não foram encontradas nas variáveis de ambiente.")
 
-# Converter o JSON para um dicionário
 credentials_dict = json.loads(credentials_json)
-
-# Criar as credenciais
 credentials = Credentials.from_service_account_info(credentials_dict, scopes=SCOPES)
-
-# Autorizar o acesso ao Google Sheets
 gc = gspread.authorize(credentials)
 
 # ID da tua folha de cálculo do Google Sheets
 SHEET_ID = "16cHqwWP3Yy1D4kln5_12vXferPvXwlEJvC79te_4OXw"  # Substituir pelo ID correto
 sheet = gc.open_by_key(SHEET_ID).sheet1  # Abre a primeira folha
 
-# Função para guardar perguntas e respostas no Google Sheets
+# Função para guardar perguntas, respostas e data/hora da pergunta
 def save_to_google_sheets(user_message, bot_response):
-    sheet.append_row([user_message, bot_response])
+    time_string = datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+    sheet.append_row([user_message, bot_response, time_string])
 
 # Configura a chave de API do OpenAI
 api_key = os.getenv("OPENAI_API_KEY")
@@ -88,10 +83,9 @@ if st.button("Enviar"):
         answer = ask_openai(question)
         st.session_state.chat_log.append(f"Assistente: {answer}")
 
-        # Salva a conversa no Google Sheets
+        # Salva a conversa no Google Sheets (pergunta, resposta e hora/dia)
         save_to_google_sheets(question, answer)
 
 # Exibe o log de conversa
 for message in st.session_state.chat_log:
     st.write(message)
-
