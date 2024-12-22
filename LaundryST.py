@@ -25,10 +25,10 @@ sheet = spreadsheet.worksheet("Folha1")  # Acessa a folha chamada "Folha1"
 # Função para guardar perguntas, respostas e data/hora da pergunta
 def save_to_google_sheets(user_message, bot_response):
     try:
-        # Formata a data e hora no formato 'dd/mm/aaaa HH:MM:SS'
+        # Formata a data e hora no formato 'dd/mm/aaaa HH:MM:SS' como texto
         time_string = datetime.now().strftime('%d/%m/%Y %H:%M:%S')
         # Adiciona a linha na planilha com as colunas A (pergunta), B (resposta) e C (data/hora)
-        sheet.append_row([user_message, bot_response, time_string])
+        sheet.append_row([user_message, bot_response, f"'{time_string}"])  # Adiciona a hora com aspas simples
     except Exception as e:
         st.error(f"Erro ao salvar no Google Sheets: {e}")
 
