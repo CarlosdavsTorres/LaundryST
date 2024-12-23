@@ -55,11 +55,9 @@ def ask_openai(question):
                     To use the machines, load the washing machine with your clothes, select program, pay in payment terminal and press start in the washing machine. \
                     The washing cycle usually takes between 30min to 1h, depending on the selected program (they may take longer than what machine says in the beginning, depending on amount of clothes). \
                     The operating hours are from 7 AM to 10 PM, every day of the week. \
-                    You respond in a short, very conversational friendly style. \
-                    The only other advantage of the membership card is seeing if machines are available in app. \
-                    Specifically detail every advantage and price reduction of having the membership card if the client asks (there are no special discounts or points to accumulate to exchange for discounts). \
-                    Respond in whichever language the client writes to you (for example, if the client says Ciao, reply in Italian, if they say Hi, reply in English, or if they say Hola, reply in Spanish). \
-                    Begin everytime by saying: Olá, sou o assistente virtual da lavandaria do Campo Alegre! Em que posso ser útil?"""
+                    Respond in a short, very conversational friendly style. \
+                    Specifically detail every advantage and price reduction of having the membership card if the client asks. \
+                    Respond in whichever language the client writes to you."""
                 },
                 {"role": "user", "content": question}
             ],
@@ -73,43 +71,34 @@ def ask_openai(question):
 # Configura o layout do Streamlit
 st.title("Assistente Virtual da Lavandaria")
 
-# Inicializa o estado da aplicação no Streamlit
+# Inicializa o log de conversa no session_state
 if 'chat_log' not in st.session_state:
-    st.session_state['chat_log'] = [
+    st.session_state.chat_log = [
         "Assistente: Olá, sou o assistente virtual da lavandaria do Campo Alegre! Em que posso ser útil?"
     ]
 
-if "user_input" not in st.session_state:
-    st.session_state["user_input"] = ""
-
-def process_message():
+def process_message(question):
     """
-    Função para processar a mensagem e gerar a resposta.
-    É chamada ao pressionar Enter (on_change) ou ao clicar no botão "Enviar".
+    Processa a mensagem do usuário e gera a resposta.
     """
-    question = st.session_state["user_input"]
     if question:
         st.session_state.chat_log.append(f"Você: {question}")
         answer = ask_openai(question)
         st.session_state.chat_log.append(f"Assistente: {answer}")
-        # Salva no Google Sheets
         save_to_google_sheets(question, answer)
-        # Limpa o campo de texto
-        st.session_state["user_input"] = ""
 
-# Campo de texto que submete ao pressionar Enter
-st.text_input(
-    "Sua Mensagem:",
-    placeholder="Digite sua mensagem e pressione Enter ou clique em 'Enviar'",
-    key="user_input",
-    on_change=process_message
-)
+# Interface principal
+with st.form(key="user_input_form"):
+    user_input = st.text_input(
+        "Sua Mensagem:",
+        placeholder="Digite sua mensagem aqui"
+    )
+    submitted = st.form_submit_button("Enviar")
 
-# Botão "Enviar" que chama a mesma função
-if st.button("Enviar"):
-    process_message()
+# Processar mensagem quando o formulário for enviado
+if submitted and user_input:
+    process_message(user_input)
 
-# Exibe todo o histórico de conversa
+# Exibe o log de conversa
 for message in st.session_state.chat_log:
     st.write(message)
-
