@@ -73,12 +73,14 @@ def ask_openai(question):
 # Configura o layout do Streamlit
 st.title("Assistente Virtual da Lavandaria")
 
-# Inicializa o log de conversa
+# Inicializa o estado da aplicação no Streamlit
 if 'chat_log' not in st.session_state:
-    st.session_state.chat_log = []
-    st.session_state.chat_log.append(
+    st.session_state['chat_log'] = [
         "Assistente: Olá, sou o assistente virtual da lavandaria do Campo Alegre! Em que posso ser útil?"
-    )
+    ]
+
+if "user_input" not in st.session_state:
+    st.session_state["user_input"] = ""
 
 def process_message():
     """
@@ -110,3 +112,4 @@ if st.button("Enviar"):
 # Exibe todo o histórico de conversa
 for message in st.session_state.chat_log:
     st.write(message)
+
