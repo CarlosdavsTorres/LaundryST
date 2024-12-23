@@ -61,7 +61,7 @@ def ask_openai(question):
                 },
                 {"role": "user", "content": question}
             ],
-            max_tokens=150,
+            max_tokens=300,
             temperature=0.4
         )
         return response.choices[0].message['content'].strip()
