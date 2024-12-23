@@ -43,7 +43,7 @@ openai.api_key = api_key
 def ask_openai(question):
     try:
         response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
+            model="gpt-4",
             messages=[
                 {
                     "role": "system",
@@ -62,7 +62,7 @@ def ask_openai(question):
                 {"role": "user", "content": question}
             ],
             max_tokens=150,
-            temperature=0.5
+            temperature=0.4
         )
         return response.choices[0].message['content'].strip()
     except Exception as e:
