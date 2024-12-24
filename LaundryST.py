@@ -117,6 +117,8 @@ with st.form(key="user_input_form"):
 # Processar mensagem quando o formulário for enviado
 if submitted and user_input:
     process_message(user_input)
+    # Limpa o campo de texto após o envio da mensagem
+    st.session_state["user_input"] = ""
 
 # Exibe o log de conversa
 for message in st.session_state.chat_log:
