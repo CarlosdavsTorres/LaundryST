@@ -114,15 +114,16 @@ with st.form(key="user_input_form"):
     user_input = st.text_input(
         "Sua Mensagem:",
         placeholder="Digite sua mensagem aqui",
+        value=st.session_state.user_input,
         key="user_input"
     )
     submitted = st.form_submit_button("Enviar")
 
 # Processar mensagem quando o formulário for enviado
-if submitted and user_input:
-    process_message(user_input)
+if submitted and st.session_state.user_input:
+    process_message(st.session_state.user_input)
     # Limpa o campo de texto após o envio da mensagem
-    st.session_state["user_input"] = " "
+    st.session_state.user_input = ""
 
 # Exibe o log de conversa
 for message in st.session_state.chat_log:
