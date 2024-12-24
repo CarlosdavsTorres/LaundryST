@@ -88,9 +88,6 @@ if 'chat_log' not in st.session_state:
 if 'memory' not in st.session_state:
     st.session_state.memory = []
 
-if 'user_input' not in st.session_state:
-    st.session_state.user_input = ""
-
 def process_message(question):
     """
     Processa a mensagem do usuário e gera a resposta.
@@ -114,14 +111,13 @@ with st.form(key="user_input_form"):
     user_input = st.text_input(
         "Sua Mensagem:",
         placeholder="Digite sua mensagem aqui",
-        value=st.session_state.user_input,
         key="user_input"
     )
     submitted = st.form_submit_button("Enviar")
 
 # Processar mensagem quando o formulário for enviado
-if submitted and st.session_state.user_input:
-    process_message(st.session_state.user_input)
+if submitted and user_input:
+    process_message(user_input)
     # Limpa o campo de texto após o envio da mensagem
     st.session_state.user_input = ""
 
