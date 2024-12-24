@@ -43,7 +43,7 @@ openai.api_key = api_key
 def ask_openai(question):
     try:
         response = openai.ChatCompletion.create(
-            model="gpt-4",
+            model="gpt-4o-mini-2024-07-18",
             messages=[
                 {
                     "role": "system",
