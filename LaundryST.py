@@ -110,7 +110,8 @@ def process_message(question):
 with st.form(key="user_input_form"):
     user_input = st.text_input(
         "Sua Mensagem:",
-        placeholder="Digite sua mensagem aqui"
+        placeholder="Digite sua mensagem aqui",
+        key="user_input"
     )
     submitted = st.form_submit_button("Enviar")
 
